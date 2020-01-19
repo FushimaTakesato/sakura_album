@@ -28,7 +28,7 @@ header('Content-Type: text/html; charset=UTF-8');
     <input type="file" accept="image/*" multiple name="upfile[]" size="30" value=""><br>
     場所<input name="place" type="text"><br>
     イベント<input name="event" type="text"><br>
-    人<input name="peple" type="text"><br>
+    人<input name="people" type="text"><br>
     <input type="submit" value="アップロード">
 </form>
 <br>

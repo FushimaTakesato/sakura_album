@@ -34,7 +34,7 @@ for($i = 0; $i < count($_FILES["upfile"]["tmp_name"]); $i++ ){
             setDB($dbh, $id, "place", $place);
             setDB($dbh, $id, "event", $event);
             setDB($dbh, $id, "people", $people);
-            
+            setDBfromEXIF($dbh, $id);
         }
         else {
             echo "can't upload!";
