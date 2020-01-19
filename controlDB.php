@@ -115,7 +115,22 @@
             //echo '<br>';
             //var_dump($exif['DateTimeOriginal']);
             //echo '<br>';
+            //日時
+            echo '<br>';
+            //echo $row['year'].'/'.$row['month'].'/'.$row['day'].'/'.$row['hour'].':'.$row['min'];
+            //自動セット
+            //setDBfromEXIF($dbh, $row['id']);
+            echo '<form method="POST"  action="setTime.php">
+                  <input type="hidden" name = "id" value="'.$row['id'].'">
+                  <input type="text" name = "year" value="'.$row['year'].'" size="2">/
+                  <input type="text" name = "month" value="'.$row['month'].'" size="1">/
+                  <input type="text" name = "day" value="'.$row['day'].'" size="1">/
+                  <input type="text" name = "hour" value="'.$row['hour'].'" size="1">:
+                  <input type="text" name = "min" value="'.$row['min'].'" size="1">
+                  <input type="submit" value="修正"></form>';
+            
             //placeから、該当idのvalueを引っ張ってくる
+            echo '<br>';
             printTag($dbh, 'place', $row['id']);
             echo '<br>';
             printTag($dbh, 'event', $row['id']);
@@ -179,6 +194,18 @@
             }else{
                 list($year, $month, $day, $hour, $min, $sec) = preg_split('/[: ]/', $exif['DateTime']);
                 $sql = "UPDATE `test` SET `year` = '".$year."', `month` = '".$month."', `day` = '".$day."', `hour` = '".$hour."', `min` = '".$min."', `sec` = '".$sec."' WHERE `test`.`id` = '".$id."'";
+                $stmt = $dbh->query($sql);
+            }
+        }
+    }
+    function setTime($dbh, $id, $year, $month, $day, $hour, $min){
+        $sql = "SELECT * FROM `test` WHERE `id` = '".$id."'";
+        $stmt = $dbh->query($sql);
+        foreach ($stmt as $row){
+            if(empty($exif['DateTime'])){
+                echo 'No time.';
+            }else{
+                $sql = "UPDATE `test` SET `year` = '".$year."', `month` = '".$month."', `day` = '".$day."', `hour` = '".$hour."', `min` = '".$min."' WHERE `test`.`id` = '".$id."'";
                 $stmt = $dbh->query($sql);
             }
         }
