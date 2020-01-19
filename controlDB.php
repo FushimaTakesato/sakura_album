@@ -22,6 +22,8 @@
         return $dbh;
     }
     
+    //以前のDBから移行
+    //INSERT INTO comment(id, value) select id,comment from test;
     function addDB($dbh, $id, $date, $name){
         $sql = "INSERT INTO test(date,name,id) VALUES('".$date."','".$name."',".$id.")";
         $stmt = $dbh->query($sql);
@@ -39,7 +41,7 @@
             echo '<br>';
         }
     }
-    function showDBsimpmle($dbh){
+    function showDBsimple($dbh){
         $sql = "SELECT * FROM test";
         $stmt = $dbh->query($sql);
         foreach ($stmt as $row) {
@@ -60,6 +62,36 @@
             echo '<br>';
         }
         
+    }
+    function printTag($dbh, $tag, $id){
+        //tagから、該当idのvalueを引っ張ってくる
+        $sql = "SELECT value  FROM ".$tag." WHERE id = '".$id."'";
+        $stmt = $dbh->query($sql);
+        foreach ($stmt as $row) {
+            echo $row['value'];
+            echo '/';
+        }
+    }
+    function editTag($dbh, $tag, $id){
+        $sql = "SELECT value  FROM ".$tag." WHERE id = '".$id."'";
+        $stmt = $dbh->query($sql);
+        foreach ($stmt as $row) {
+            echo '<form method="POST"  action="modifyDB.php">
+                  <input type="hidden" name = "id" value="'.$id.'">
+                  <input type="hidden" name = "tag" value="'.$tag.'"  >
+                  <input type="hidden" name = "orgvalue" value="'.$row['value'].'">
+                  '.$tag.'  :
+                  <input name="value" type="text" value="'.$row['value'].'">
+                  <input type="submit" value="修正">
+                  </form>';
+        }
+        echo '<form method="POST"  action="setDB.php">
+              <input type="hidden" name = "id" value="'.$id.'">
+              <input type="hidden" name = "tag" value="'.$tag.'">
+              '.$tag.'  :
+              <input name="value" type="text" value="">
+              <input type="submit" value="追加">
+              </form>';
     }
     function showDB($dbh, $sql){
         $stmt = $dbh->query($sql);
@@ -83,17 +115,22 @@
             //echo '<br>';
             //var_dump($exif['DateTimeOriginal']);
             //echo '<br>';
-            echo $row['place'];
+            //placeから、該当idのvalueを引っ張ってくる
+            printTag($dbh, 'place', $row['id']);
             echo '<br>';
-            echo $row['event'];
+            printTag($dbh, 'event', $row['id']);
             echo '<br>';
             echo '<img src="'.$img.'" width="300">';
             echo '<br>';
-            echo '<form method="POST"  action="setDB.php"><input type="hidden" name = "id" value="'.$row['id'].'"><input type="hidden" name = "tag" value="place"  >place  :<input name="value" type="text" value="'.$row['place'].'"><input type="submit" value="更新"></form>';
+            editTag($dbh, 'place', $row['id']);
             echo '<br>';
-            echo '<form method="POST"  action="setDB.php"><input type="hidden" name = "id" value="'.$row['id'].'"><input type="hidden" name = "tag" value="event"  >event  :<input name="value" type="text" value="'.$row['event'].'"><input type="submit" value="更新"></form>';
+            editTag($dbh, 'event', $row['id']);
             echo '<br>';
-            echo '<form method="POST"  action="setDB.php"><input type="hidden" name = "id" value="'.$row['id'].'"><input type="hidden" name = "tag" value="comment">comment:<input name="value" type="text" value="'.$row['comment'].'"><input type="submit" value="更新"></form>';
+            editTag($dbh, 'people', $row['id']);
+            echo '<br>';
+            editTag($dbh, 'impression', $row['id']);
+            echo '<br>';
+            editTag($dbh, 'comment', $row['id']);
             echo '<br>';
             echo '<form method="POST"  action="deleteDB.php"><input type="hidden" name = "id" value="'.$row['id'].'"><input type="submit" value="削除"></form>';
             echo '<br>';
@@ -116,11 +153,17 @@
         $stmt = $dbh->query($sql);
         echo $sql;
     }
+    //new
     function setDB($dbh, $id, $tag, $value){
-        $sql = "SELECT * FROM `test` WHERE `id` = '".$id."'";
+        $sql = "INSERT INTO `".$tag."`(id, value) VALUES('".$id."','".$value."')";
+        $stmt = $dbh->query($sql);
+    }
+    //modify
+    function modifyDB($dbh, $id, $tag, $value, $orgvalue){
+        $sql = "SELECT * FROM `".$tag."` WHERE `id` = '".$id."' AND `value` = '".$orgvalue."' ";
         $stmt = $dbh->query($sql);
         foreach ($stmt as $row){
-            $sql = "UPDATE `test` SET `".$tag."` = '".$value."' WHERE `test`.`id` = '".$id."'";
+            $sql = "UPDATE `".$tag."` SET `value` = '".$value."' WHERE `".$tag."`.`id` = '".$id."'";
             $stmt = $dbh->query($sql);
         }
     }
@@ -146,18 +189,52 @@
         
     }
     function pickupmultiDB($dbh, $place, $event, $value){
-        $sql = "SELECT * FROM test WHERE `place` LIKE '".$place."' AND `event` LIKE '".$event."'";
-        //$sql = "SELECT * FROM test WHERE `place` LIKE '".$place."'";
+        
+        //placeターブルの中から検索
+        $sql = "SELECT * FROM `place` WHERE `value` LIKE '".$place."'";
+        $stmt = $dbh->query($sql);
+        echo 'place:'.$place.'<br>';
+        foreach ($stmt as $row) {
+            //echo $row['id'];
+            //echo '<br>';
+            $list_place[] = $row['id'];
+        }
+        if ($list_place) {
+            $where_place = "`id` IN ('".implode("', '", $list_place)."')";
+        } else {
+            $where_place = "";
+        }
+        //eventターブルの中から検索
+        $sql = "SELECT * FROM `event` WHERE `value` LIKE '".$event."'";
+        $stmt = $dbh->query($sql);
+        echo 'event:'.$event.'<br>';
+        foreach ($stmt as $row) {
+            //echo $row['id'];
+            //echo '<br>';
+            $list_event[] = $row['id'];
+        }
+        if ($list_event) {
+            $where_event = "`id` IN ('".implode("', '", $list_event)."')";
+        } else {
+            $where_event = "";
+        }
+        //placeかつeventのidを検索
+        $sql = "SELECT * FROM `test` WHERE ".$where_place." AND ".$where_event;
+        $stmt = $dbh->query($sql);
+        //echo 'and<br>';
+        
+        //foreach ($stmt as $row) {
+        //    echo $row['id'];
+        //    echo '<br>';
+        //}
         showDB($dbh, $sql);
         
     }
     function listDB($dbh, $tag){
-        $sql = "SELECT ".$tag." FROM test GROUP BY ".$tag;
+        $sql = "SELECT * FROM ".$tag." GROUP BY value";
         $stmt = $dbh->query($sql);
         foreach ($stmt as $row) {
-            //echo $row[$tag];
-            //echo '<br>';
-            $list[] = $row[$tag];
+            $list[] = $row['value'];
         }
         return $list;
     }

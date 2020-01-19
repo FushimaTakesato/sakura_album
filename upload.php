@@ -1,4 +1,13 @@
 <?php
+
+require_once __DIR__ . '/pass_check.php';
+require_logined_session();
+require_once 'set_env.php';
+header('Content-Type: text/html; charset=UTF-8');
+
+?>
+
+<?php
 include("controlDB.php");
 //画像の保存先のパスを指定
 $filedir = "./data_img/";
@@ -7,6 +16,7 @@ $filedir = "./data_img/";
 include("date.php");
 $place    = $_POST['place'];
 $event   = $_POST['event'];
+$people   = $_POST['people'];
 
 $dbh = loginDB();
 //$filesdirで指定したファイルに画像を保存する。
@@ -23,8 +33,7 @@ for($i = 0; $i < count($_FILES["upfile"]["tmp_name"]); $i++ ){
             addDB($dbh, $id, $tttt, $new);
             setDB($dbh, $id, "place", $place);
             setDB($dbh, $id, "event", $event);
-            
-            include("countup.php");
+            setDB($dbh, $id, "people", $people);
             
         }
         else {

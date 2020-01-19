@@ -1,4 +1,14 @@
 <?php
+
+require_once __DIR__ . '/pass_check.php';
+require_logined_session();
+require_once 'set_env.php';
+header('Content-Type: text/html; charset=UTF-8');
+
+?>
+
+
+<?php
 include("controlDB.php");
 $id    = $_POST['id'];
 $tag   = $_POST['tag'];

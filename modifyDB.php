@@ -10,9 +10,13 @@ header('Content-Type: text/html; charset=UTF-8');
 
 <?php
 include("controlDB.php");
-$place = $_POST['place'];
-$event = $_POST['event'];
+$id    = $_POST['id'];
+$tag   = $_POST['tag'];
+$value = $_POST['value'];
+$orgvalue = $_POST['orgvalue'];
 $dbh = loginDB();
-pickupmultiDB($dbh, $place, $event, $value);
+modifyDB($dbh, $id, $tag, $value, $orgvalue);
 echo '<a href="' . $_SERVER['HTTP_REFERER'] . '">前に戻る</a>';
+header('Location: '.$_SERVER['HTTP_REFERER']);
+exit();
 ?>
